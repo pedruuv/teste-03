@@ -2,10 +2,11 @@ package com.pedro.gerenciamentodepessoas.controller;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
-import org.springframework.data.domain.Page;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -98,18 +99,24 @@ public class PessoaController {
 
     @PostMapping("/{pessoaId}/enderecos")
     @Transactional
-    public ResponseEntity addEnderecoPessoa(@PathVariable Long id, @RequestBody @Valid EnderecoDto dados, UriComponentsBuilder builder){
-        var pessoa = pessoaRepository.getReferenceById(id);
+    public ResponseEntity addEnderecoPessoa(@PathVariable Long pessoaId, @RequestBody @Valid EnderecoDto dados, UriComponentsBuilder builder) {
+        Optional<Pessoa> optionalPessoa = pessoaRepository.findById(pessoaId);
+        if (optionalPessoa.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-        var endereco = new Endereco(dados);
+        Pessoa pessoa = optionalPessoa.get();
+
+        Endereco endereco = new Endereco(dados);
 
         pessoa.addEndereco(endereco);
 
         enderecoRepository.save(endereco);
 
-        var uri = builder.path("/pessoas/{pessoaId}/enderecos/{enderecoId}").buildAndExpand(id, endereco.getId()).toUri();
+        var uri = builder.path("/pessoas/{pessoaId}/enderecos/{enderecoId}").buildAndExpand(pessoa.getId(), endereco.getId()).toUri();
 
         return ResponseEntity.created(uri).body(new GetEnderecoDto(endereco));
+        
     }
 
     @PutMapping("/{pessoaID}/enderecos/{enderecoId}")

@@ -30,7 +30,6 @@ public class Pessoa {
     public Pessoa(@NotNull @Valid CadastroPessoaDto dados) {
         this.nome = dados.nome();
         this.dataNascimento = dados.dataNascimento();
-        this.enderecos.add(new Endereco(dados.endereco()));
 
     }
     @Id
@@ -49,6 +48,7 @@ public class Pessoa {
 
     public void addEndereco(Endereco endereco) {
         this.enderecos.add(endereco);
+        endereco.setPessoa(this);
     }
 
 }
