@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.pedro.gerenciamentodepessoas.endereco.Endereco;
-import com.pedro.gerenciamentodepessoas.endereco.EnderecoDto;
+import com.pedro.gerenciamentodepessoas.endereco.CreateEnderecoDto;
 import com.pedro.gerenciamentodepessoas.endereco.EnderecoRepository;
 import com.pedro.gerenciamentodepessoas.endereco.GetEnderecoDto;
 import com.pedro.gerenciamentodepessoas.endereco.UpdateEnderecoDto;
@@ -44,7 +43,7 @@ public class PessoaController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity addPessoa(@RequestBody @Valid CadastroPessoaDto dados, UriComponentsBuilder builder){
+    public ResponseEntity<GetPessoaDto> addPessoa(@RequestBody @Valid CadastroPessoaDto dados, UriComponentsBuilder builder){
         var pessoa = new Pessoa(dados);
         pessoaRepository.save(pessoa);
 
@@ -61,7 +60,7 @@ public class PessoaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getPessoa(@PathVariable Long id){
+    public ResponseEntity<GetPessoaDto> getPessoa(@PathVariable Long id){
         var pessoa = pessoaRepository.getReferenceById(id);
 
         return ResponseEntity.ok(new GetPessoaDto(pessoa));
@@ -69,7 +68,7 @@ public class PessoaController {
 
     @PutMapping
     @Transactional
-    public ResponseEntity updatePessoa(@RequestBody @Valid UpdatePessoaDto dados){
+    public ResponseEntity<GetPessoaDto> updatePessoa(@RequestBody @Valid UpdatePessoaDto dados){
         var pessoa = pessoaRepository.getReferenceById(dados.id());
         pessoa.updateInfo(dados);
 
@@ -86,7 +85,7 @@ public class PessoaController {
     }
 
     @GetMapping("/{pessoaId}/enderecos/{enderecoId}")
-    public ResponseEntity getEnderecoPessoa(@PathVariable Long pessoaId, @PathVariable Long enderecoId){
+    public ResponseEntity<GetEnderecoDto> getEnderecoPessoa(@PathVariable Long pessoaId, @PathVariable Long enderecoId){
         var pessoa = pessoaRepository.getReferenceById(pessoaId);
 
         var enderecoOptional = pessoa.getEnderecos().stream().filter(e -> e.getId().equals(enderecoId)).findFirst();
@@ -101,7 +100,7 @@ public class PessoaController {
 
     @PostMapping("/{pessoaId}/enderecos")
     @Transactional
-    public ResponseEntity<GetEnderecoDto> addEnderecoPessoa(@PathVariable Long pessoaId, @RequestBody @Valid EnderecoDto dados, UriComponentsBuilder builder) {
+    public ResponseEntity<GetEnderecoDto> addEnderecoPessoa(@PathVariable Long pessoaId, @RequestBody @Valid CreateEnderecoDto dados, UriComponentsBuilder builder) {
         Optional<Pessoa> optionalPessoa = pessoaRepository.findById(pessoaId);
         if (optionalPessoa.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -123,7 +122,7 @@ public class PessoaController {
 
     @PutMapping("/{pessoaId}/enderecos/{enderecoId}")
     @Transactional
-    public ResponseEntity updateEndereco(@PathVariable Long pessoaId, @PathVariable Long enderecoId, @RequestBody @Valid UpdateEnderecoDto dados){
+    public ResponseEntity<GetEnderecoDto> updateEndereco(@PathVariable Long pessoaId, @PathVariable Long enderecoId, @RequestBody @Valid UpdateEnderecoDto dados){
         var pessoa = pessoaRepository.getReferenceById(pessoaId);
 
         var enderecoOptional = pessoa.getEnderecos().stream().filter(e -> e.getId().equals(enderecoId)).findFirst();

@@ -25,7 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Endereco {
-    public Endereco(@NotNull @Valid EnderecoDto endereco) {
+    public Endereco(@NotNull @Valid CreateEnderecoDto endereco) {
         this.logradouro = endereco.logradouro();
         this.cep = endereco.cep();
         this.numero = endereco.numero();
