@@ -87,19 +87,21 @@ public class PessoaController {
 
     @GetMapping("/{pessoaId}/enderecos/{enderecoId}")
     public ResponseEntity getEnderecoPessoa(@PathVariable Long pessoaId, @PathVariable Long enderecoId){
-        try {
-            Endereco endereco = enderecoRepository.findByIdAndPessoaId(enderecoId, pessoaId)
-            .orElseThrow(() -> new RuntimeException("Endereço não encontrado para esta pessoa"));
+        var pessoa = pessoaRepository.getReferenceById(pessoaId);
 
-            return ResponseEntity.ok(new GetEnderecoDto(endereco));
-        } catch (RuntimeException e) {
+        var enderecoOptional = pessoa.getEnderecos().stream().filter(e -> e.getId().equals(enderecoId)).findFirst();
+
+        if (!enderecoOptional.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+        
+        var endereco = enderecoOptional.get();
+        return ResponseEntity.ok().body(new GetEnderecoDto(endereco));
     }
 
     @PostMapping("/{pessoaId}/enderecos")
     @Transactional
-    public ResponseEntity addEnderecoPessoa(@PathVariable Long pessoaId, @RequestBody @Valid EnderecoDto dados, UriComponentsBuilder builder) {
+    public ResponseEntity<GetEnderecoDto> addEnderecoPessoa(@PathVariable Long pessoaId, @RequestBody @Valid EnderecoDto dados, UriComponentsBuilder builder) {
         Optional<Pessoa> optionalPessoa = pessoaRepository.findById(pessoaId);
         if (optionalPessoa.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -119,19 +121,21 @@ public class PessoaController {
         
     }
 
-    @PutMapping("/{pessoaID}/enderecos/{enderecoId}")
+    @PutMapping("/{pessoaId}/enderecos/{enderecoId}")
     @Transactional
     public ResponseEntity updateEndereco(@PathVariable Long pessoaId, @PathVariable Long enderecoId, @RequestBody @Valid UpdateEnderecoDto dados){
-        try {
-            Endereco endereco = enderecoRepository.findByIdAndPessoaId(enderecoId, pessoaId)
-            .orElseThrow(() -> new RuntimeException("Endereço não encontrado para esta pessoa"));
+        var pessoa = pessoaRepository.getReferenceById(pessoaId);
 
-            endereco.updateInfo(dados);
+        var enderecoOptional = pessoa.getEnderecos().stream().filter(e -> e.getId().equals(enderecoId)).findFirst();
 
-            return ResponseEntity.ok(new GetEnderecoDto(endereco));
-        } catch (RuntimeException e) {
+        if (!enderecoOptional.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+        
+        var endereco = enderecoOptional.get();
+        endereco.updateInfo(dados);
+
+        return ResponseEntity.ok(new GetEnderecoDto(endereco));
     }
 
 
